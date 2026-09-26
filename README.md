@@ -15,13 +15,32 @@ There is also a temporary `#nixos` alias for the first rebuild while the current
 
 ## Windows gaming VM
 
-The repo defines a libvirt VM named `win11-gaming` with dynamic RTX 4060 passthrough.
+The repo defines a NixVirt/libvirt VM named `win11-gaming` with dynamic RTX 4060 passthrough.
 
 - VM off: NVIDIA driver owns the GPU on the NixOS host.
 - VM starting: libvirt hook unloads NVIDIA and binds the GPU to VFIO.
 - VM stopped: libvirt hook reattaches the GPU to the host NVIDIA driver.
 
-The VM config lives in `configs/gaming-vm.nix`; the VM module is split across `modules/windows-gaming-vm/`.
+Readable settings live in `configs/gaming-vm.nix`.
+Virtualization modules live in `modules/virtualization/`:
+
+```text
+modules/virtualization/
+├── default.nix
+├── libvirt.nix
+├── vfio.nix
+└── windows-gaming-vm/
+    ├── default.nix
+    ├── domain.nix
+    ├── gpu-hook.nix
+    ├── network.nix
+    └── domain/
+        ├── boot.nix
+        ├── cpu.nix
+        ├── features.nix
+        ├── lifecycle.nix
+        └── devices/
+```
 
 After rebuilding and rebooting, attach your Windows ISO:
 
@@ -42,6 +61,6 @@ Useful checks:
 ```bash
 sudo virsh list --all
 sudo virsh domstate win11-gaming
-sudo journalctl -u libvirt-define-win11-gaming.service
+sudo systemctl status nixvirt.service
 sudo tail -f /var/log/libvirt/qemu/win11-gaming-gpu-hook.log
 ```
