@@ -1,4 +1,4 @@
-{ pkgs, vm }:
+{ inputs, vm }:
 
 [
   {
@@ -37,7 +37,7 @@
       name = "qemu";
       type = "raw";
     };
-    source.file = "${pkgs.virtio-win}/iso/virtio-win.iso";
+    source.file = "${inputs.NixVirt.lib.guest-install.virtio-win.iso}";
     target = {
       dev = "sdb";
       bus = "sata";

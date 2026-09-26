@@ -18,7 +18,7 @@ let
   // import ./domain/features.nix { }
   // import ./domain/lifecycle.nix { }
   // {
-    devices = import ./domain/devices { inherit pkgs vm; };
+    devices = import ./domain/devices { inherit inputs pkgs vm; };
   };
 in
 inputs.NixVirt.lib.domain.writeXML domain

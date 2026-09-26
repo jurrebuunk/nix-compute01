@@ -1,9 +1,13 @@
-{ pkgs, vm }:
+{
+  inputs,
+  pkgs,
+  vm,
+}:
 
 {
   emulator = "${pkgs.qemu_kvm}/bin/qemu-system-x86_64";
 
-  disk = import ./disks.nix { inherit pkgs vm; };
+  disk = import ./disks.nix { inherit inputs vm; };
   controller = import ./controllers.nix { };
   hostdev = import ./passthrough.nix { inherit vm; };
 
