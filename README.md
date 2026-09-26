@@ -21,7 +21,7 @@ The repo defines a libvirt VM named `win11-gaming` with dynamic RTX 4060 passthr
 - VM starting: libvirt hook unloads NVIDIA and binds the GPU to VFIO.
 - VM stopped: libvirt hook reattaches the GPU to the host NVIDIA driver.
 
-The VM config lives in `configs/gaming-vm.nix` and the module is `modules/windows-gaming-vm.nix`.
+The VM config lives in `configs/gaming-vm.nix`; the VM module is split across `modules/windows-gaming-vm/`.
 
 After rebuilding and rebooting, attach your Windows ISO:
 

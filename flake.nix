@@ -27,7 +27,7 @@
           ./configuration.nix
           ./modules/hardware-sensors.nix
           ./modules/nvidia.nix
-          ./modules/windows-gaming-vm.nix
+          ./modules/windows-gaming-vm
         ];
       };
     in
