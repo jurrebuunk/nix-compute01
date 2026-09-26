@@ -1,16 +1,23 @@
 { pkgs, vm }:
 
+let
+  gpuVideo = "0000:07:00.0";
+  gpuAudio = "0000:07:00.1";
+in
 pkgs.writeShellApplication {
   name = "libvirt-qemu-hook";
   runtimeInputs = with pkgs; [
     coreutils
     gnugrep
+    kmod
     systemd
   ];
   text = ''
     set -euo pipefail
 
     VM_NAME="${vm.name}"
+    GPU_VIDEO="${gpuVideo}"
+    GPU_AUDIO="${gpuAudio}"
     LOG_DIR="/var/log/libvirt/qemu"
     LOG_FILE="$LOG_DIR/$VM_NAME-gpu-hook.log"
 
@@ -39,29 +46,33 @@ pkgs.writeShellApplication {
       fi
     }
 
-    bind_framebuffer() {
-      if [ -e /sys/bus/platform/drivers/efi-framebuffer/bind ]; then
-        echo efi-framebuffer.0 > /sys/bus/platform/drivers/efi-framebuffer/bind || true
+    bind_to_vfio() {
+      dev="$1"
+      vendor="$(cat "/sys/bus/pci/devices/$dev/vendor")"
+      device="$(cat "/sys/bus/pci/devices/$dev/device")"
+
+      modprobe vfio-pci
+
+      if [ -e "/sys/bus/pci/devices/$dev/driver/unbind" ]; then
+        echo "$dev" > "/sys/bus/pci/devices/$dev/driver/unbind" || true
       fi
 
-      for vtconsole in /sys/class/vtconsole/vtcon*; do
-        if [ -e "$vtconsole/name" ] && grep -qi "frame buffer" "$vtconsole/name"; then
-          echo 1 > "$vtconsole/bind" || true
-        fi
-      done
+      echo "$vendor $device" > /sys/bus/pci/drivers/vfio-pci/new_id || true
+      echo "$dev" > /sys/bus/pci/drivers/vfio-pci/bind || true
     }
 
     case "$operation/$suboperation" in
       prepare/begin)
-        # Let libvirt's managed='yes' hostdev handling do the actual PCI
-        # detach/bind. The hook only gets the host display out of the way.
+        # One-way handoff: host owns GPU after boot; VM owns GPU after first VM start.
+        # We intentionally do not reattach to NVIDIA on VM stop because this machine
+        # wedges in nvidia-modeset during dynamic single-GPU reattach.
         systemctl stop display-manager.service || true
         unbind_framebuffer
+        bind_to_vfio "$GPU_AUDIO"
+        bind_to_vfio "$GPU_VIDEO"
         ;;
-      release/end)
-        # Let libvirt reattach the PCI devices. Then bring host display back.
-        bind_framebuffer
-        systemctl start display-manager.service || true
+      stopped/end|release/end)
+        echo "Leaving GPU bound to vfio-pci; reboot to return it to the host NVIDIA driver."
         ;;
     esac
   '';
