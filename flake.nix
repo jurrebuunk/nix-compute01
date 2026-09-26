@@ -5,7 +5,8 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
-  outputs = { self, nixpkgs, ... }@inputs:
+  outputs =
+    { self, nixpkgs, ... }@inputs:
     let
       system = "x86_64-linux";
       lib = nixpkgs.lib;
@@ -17,11 +18,16 @@
         modules = [
           # Machine-specific and intentionally gitignored.
           # Use `--impure` when rebuilding so flakes can read it from /etc/nixos.
-          ({ lib, ... }: {
-            imports = lib.optional (builtins.pathExists hardwareConfig) hardwareConfig;
-          })
+          (
+            { lib, ... }:
+            {
+              imports = lib.optional (builtins.pathExists hardwareConfig) hardwareConfig;
+            }
+          )
           ./configuration.nix
+          ./modules/hardware-sensors.nix
           ./modules/nvidia.nix
+          ./modules/windows-gaming-vm.nix
         ];
       };
     in

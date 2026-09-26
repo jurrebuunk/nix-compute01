@@ -13,10 +13,16 @@
   users.users.jurre = {
     isNormalUser = true;
     description = "jurre";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+    ];
   };
 
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
   nixpkgs.config.allowUnfree = true;
 
   environment.systemPackages = with pkgs; [
