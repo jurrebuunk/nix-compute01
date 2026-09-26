@@ -1,0 +1,10 @@
+# Machine-specific hardware scan; keep it local only.
+hardware-configuration.nix
+
+# Nix build output symlinks
+result
+result-*
+
+# Editor/temp files
+*.swp
+*~
