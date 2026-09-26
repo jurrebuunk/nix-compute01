@@ -5,16 +5,12 @@ pkgs.writeShellApplication {
   runtimeInputs = with pkgs; [
     coreutils
     gnugrep
-    kmod
-    libvirt
     systemd
   ];
   text = ''
     set -euo pipefail
 
     VM_NAME="${vm.name}"
-    GPU_VIDEO="${vm.gpu.video.nodeDevice}"
-    GPU_AUDIO="${vm.gpu.audio.nodeDevice}"
     LOG_DIR="/var/log/libvirt/qemu"
     LOG_FILE="$LOG_DIR/$VM_NAME-gpu-hook.log"
 
@@ -55,40 +51,17 @@ pkgs.writeShellApplication {
       done
     }
 
-    detach_gpu() {
-      systemctl stop display-manager.service || true
-      unbind_framebuffer
-      sleep 1
-
-      modprobe -r nvidia_drm || true
-      modprobe -r nvidia_modeset || true
-      modprobe -r nvidia_uvm || true
-      modprobe -r nvidia || true
-
-      modprobe vfio-pci
-      virsh nodedev-detach "$GPU_AUDIO" || true
-      virsh nodedev-detach "$GPU_VIDEO" || true
-    }
-
-    reattach_gpu() {
-      virsh nodedev-reattach "$GPU_VIDEO" || true
-      virsh nodedev-reattach "$GPU_AUDIO" || true
-
-      modprobe nvidia || true
-      modprobe nvidia_uvm || true
-      modprobe nvidia_modeset || true
-      modprobe nvidia_drm || true
-
-      bind_framebuffer
-      systemctl start display-manager.service || true
-    }
-
     case "$operation/$suboperation" in
       prepare/begin)
-        detach_gpu
+        # Let libvirt's managed='yes' hostdev handling do the actual PCI
+        # detach/bind. The hook only gets the host display out of the way.
+        systemctl stop display-manager.service || true
+        unbind_framebuffer
         ;;
       release/end)
-        reattach_gpu
+        # Let libvirt reattach the PCI devices. Then bring host display back.
+        bind_framebuffer
+        systemctl start display-manager.service || true
         ;;
     esac
   '';

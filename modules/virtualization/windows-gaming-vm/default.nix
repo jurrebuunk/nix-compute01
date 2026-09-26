@@ -30,10 +30,7 @@ in
     ];
   };
 
-  environment.etc."libvirt/hooks/qemu" = {
-    source = "${qemuHook}/bin/libvirt-qemu-hook";
-    mode = "0755";
-  };
+  virtualisation.libvirtd.hooks.qemu."${vm.name}-gpu" = "${qemuHook}/bin/libvirt-qemu-hook";
 
   systemd.tmpfiles.rules = [
     "d /var/lib/libvirt/images 0755 root root -"
