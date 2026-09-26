@@ -21,6 +21,7 @@
             imports = lib.optional (builtins.pathExists hardwareConfig) hardwareConfig;
           })
           ./configuration.nix
+          ./modules/nvidia.nix
         ];
       };
     in
