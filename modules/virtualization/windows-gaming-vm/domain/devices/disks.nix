@@ -16,7 +16,6 @@
       dev = "vda";
       bus = "virtio";
     };
-    boot.order = 2;
   }
   {
     type = "file";
@@ -30,7 +29,6 @@
       bus = "sata";
     };
     readonly = true;
-    boot.order = 1;
   }
   {
     type = "file";
