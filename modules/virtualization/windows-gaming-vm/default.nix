@@ -40,6 +40,10 @@ in
     "d /var/lib/libvirt/qemu/nvram 0755 root root -"
   ];
 
+  # Do not fail the entire NixOS switch if BIOS virtualization/SVM is disabled.
+  # NixVirt will define the KVM VM once /dev/kvm exists.
+  systemd.services.nixvirt.unitConfig.ConditionPathExists = "/dev/kvm";
+
   systemd.services."libvirt-create-${vm.name}-disk" = {
     description = "Create sparse qcow2 disk for ${vm.name}";
     before = [ "nixvirt.service" ];

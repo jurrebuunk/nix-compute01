@@ -2,7 +2,7 @@
 
 {
   boot.kernelParams = [
-    "amd_iommu=on"
+    # IOMMU passthrough mode: devices stay fast on the host until assigned to VFIO.
     "iommu=pt"
     "kvm.ignore_msrs=1"
     "kvm.report_ignored_msrs=0"
