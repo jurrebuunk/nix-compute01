@@ -18,7 +18,7 @@ The RTX 4060 is dedicated to VFIO/libvirt VMs. The host does not use the GPU thr
 Defined VMs:
 
 - `win11-gaming`
-- `ubuntu-gaming`
+- `ubuntu-compute-vm`
 
 Only one VM can run at a time because both pass through the same RTX 4060 and NVIDIA audio device.
 
@@ -26,7 +26,7 @@ Readable VM settings live in:
 
 ```text
 configs/gaming-vm.nix
-configs/ubuntu-vm.nix
+configs/ubuntu-compute-vm.nix
 ```
 
 Virtualization modules live in:
@@ -37,7 +37,7 @@ modules/virtualization/
 ├── libvirt.nix
 ├── vfio.nix
 ├── windows-gaming-vm/
-└── ubuntu-gaming-vm/
+└── ubuntu-compute-vm/
 ```
 
 Check VMs:
@@ -50,7 +50,7 @@ Attach installers:
 
 ```bash
 sudo virsh attach-disk win11-gaming /path/to/windows.iso sda --type cdrom --mode readonly --config
-sudo virsh attach-disk ubuntu-gaming /path/to/ubuntu.iso sda --type cdrom --mode readonly --config
+sudo virsh attach-disk ubuntu-compute-vm /path/to/ubuntu.iso sda --type cdrom --mode readonly --config
 ```
 
 Start one VM:
@@ -58,7 +58,7 @@ Start one VM:
 ```bash
 sudo virsh start win11-gaming
 # or
-sudo virsh start ubuntu-gaming
+sudo virsh start ubuntu-compute-vm
 ```
 
 Stop it before starting the other:

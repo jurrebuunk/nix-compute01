@@ -1,7 +1,7 @@
 { inputs, pkgs, ... }:
 
 let
-  vm = import ../../../configs/ubuntu-vm.nix;
+  vm = import ../../../configs/ubuntu-compute-vm.nix;
   domainXml = import ./domain.nix { inherit inputs pkgs vm; };
 in
 {

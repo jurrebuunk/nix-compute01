@@ -1,11 +1,11 @@
 {
-  name = "ubuntu-gaming";
+  name = "ubuntu-compute-vm";
   uuid = "8db9fb31-e7e2-48f8-9e88-f83419d74c64";
 
   storage = {
-    diskPath = "/var/lib/libvirt/images/ubuntu-gaming.qcow2";
+    diskPath = "/var/lib/libvirt/images/ubuntu-compute-vm.qcow2";
     diskSize = "250G";
-    nvramPath = "/var/lib/libvirt/qemu/nvram/ubuntu-gaming_VARS.fd";
+    nvramPath = "/var/lib/libvirt/qemu/nvram/ubuntu-compute-vm_VARS.fd";
   };
 
   cpu = {
