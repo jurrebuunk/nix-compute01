@@ -28,7 +28,7 @@ Readable settings live in:
 configs/windows-gaming-vm.nix
 configs/ubuntu-compute-vm.nix
 configs/passthrough-gpu.nix
-configs/default-network.nix
+configs/default-network.nix  # br0/enp6s0 LAN bridge
 ```
 
 Virtualization modules live in:
@@ -37,7 +37,7 @@ Virtualization modules live in:
 modules/virtualization/
 ├── default.nix
 ├── libvirt.nix      # shared libvirt/NixVirt setup
-├── network.nix      # shared default NAT network
+├── network.nix      # shared LAN bridge br0 on enp6s0
 ├── storage.nix      # shared libvirt storage dirs
 ├── vfio.nix         # shared GPU VFIO binding
 ├── windows-gaming-vm/

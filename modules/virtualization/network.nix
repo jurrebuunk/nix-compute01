@@ -1,36 +1,48 @@
-{ inputs, ... }:
+{ ... }:
 
 let
   network = import ../../configs/default-network.nix;
-  networkXml = inputs.NixVirt.lib.network.writeXML {
-    inherit (network) name uuid;
+  slaveName = "${network.bridge}-${network.physicalInterface}";
+in
+{
+  # LAN bridge for VMs. The host gets its LAN address on br0, and enp6s0 is
+  # enslaved into that bridge. VMs attach directly to br0 and receive normal
+  # LAN DHCP leases from the router.
+  networking.networkmanager.ensureProfiles.profiles = {
+    ${network.bridge} = {
+      connection = {
+        id = network.bridge;
+        type = "bridge";
+        interface-name = network.bridge;
+        autoconnect = true;
+        autoconnect-priority = 100;
+      };
 
-    forward = {
-      mode = "nat";
+      bridge = {
+        stp = false;
+      };
+
+      ipv4 = {
+        method = "auto";
+      };
+
+      ipv6 = {
+        method = "auto";
+      };
     };
 
-    bridge = {
-      name = network.bridge;
-      stp = true;
-      delay = 0;
-    };
-
-    ip = {
-      inherit (network.subnet) address netmask;
-      dhcp = {
-        range = {
-          start = network.subnet.dhcpStart;
-          end = network.subnet.dhcpEnd;
-        };
+    ${slaveName} = {
+      connection = {
+        id = slaveName;
+        type = "ethernet";
+        interface-name = network.physicalInterface;
+        master = network.bridge;
+        slave-type = "bridge";
+        autoconnect = true;
+        autoconnect-priority = 100;
       };
     };
   };
-in
-{
-  virtualisation.libvirt.connections."qemu:///system".networks = [
-    {
-      definition = networkXml;
-      active = true;
-    }
-  ];
+
+  virtualisation.libvirtd.allowedBridges = [ network.bridge ];
 }

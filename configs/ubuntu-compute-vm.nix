@@ -24,7 +24,7 @@ in
   memoryGiB = 32;
 
   network = {
-    inherit (defaultNetwork) name;
+    inherit (defaultNetwork) bridge;
   };
 
   inherit gpu;

@@ -12,8 +12,8 @@
   hostdev = import ./passthrough.nix { inherit vm; };
 
   interface = {
-    type = "network";
-    source.network = vm.network.name;
+    type = "bridge";
+    source.bridge = vm.network.bridge;
     model.type = "virtio";
   };
 
