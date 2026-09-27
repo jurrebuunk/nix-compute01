@@ -6,7 +6,7 @@
 }:
 
 let
-  vm = import ../../../configs/gaming-vm.nix;
+  vm = import ../../../configs/windows-gaming-vm.nix;
 
   domainXml = import ./domain.nix { inherit inputs pkgs vm; };
   networkXml = import ./network.nix { inherit inputs vm; };

@@ -25,7 +25,7 @@ Only one VM can run at a time because both pass through the same RTX 4060 and NV
 Readable VM settings live in:
 
 ```text
-configs/gaming-vm.nix
+configs/windows-gaming-vm.nix
 configs/ubuntu-compute-vm.nix
 ```
 
