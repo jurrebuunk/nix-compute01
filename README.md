@@ -22,11 +22,13 @@ Defined VMs:
 
 Only one VM can run at a time because both pass through the same RTX 4060 and NVIDIA audio device.
 
-Readable VM settings live in:
+Readable settings live in:
 
 ```text
 configs/windows-gaming-vm.nix
 configs/ubuntu-compute-vm.nix
+configs/passthrough-gpu.nix
+configs/default-network.nix
 ```
 
 Virtualization modules live in:
@@ -34,8 +36,10 @@ Virtualization modules live in:
 ```text
 modules/virtualization/
 ├── default.nix
-├── libvirt.nix
-├── vfio.nix
+├── libvirt.nix      # shared libvirt/NixVirt setup
+├── network.nix      # shared default NAT network
+├── storage.nix      # shared libvirt storage dirs
+├── vfio.nix         # shared GPU VFIO binding
 ├── windows-gaming-vm/
 └── ubuntu-compute-vm/
 ```

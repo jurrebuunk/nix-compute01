@@ -13,11 +13,6 @@ in
     }
   ];
 
-  systemd.tmpfiles.rules = [
-    "d /var/lib/libvirt/images 0755 root root -"
-    "d /var/lib/libvirt/qemu/nvram 0755 root root -"
-  ];
-
   systemd.services."libvirt-create-${vm.name}-disk" = {
     description = "Create sparse qcow2 disk for ${vm.name}";
     before = [ "nixvirt.service" ];

@@ -1,3 +1,7 @@
+let
+  gpu = import ./passthrough-gpu.nix;
+  defaultNetwork = import ./default-network.nix;
+in
 {
   name = "ubuntu-compute-vm";
   uuid = "8db9fb31-e7e2-48f8-9e88-f83419d74c64";
@@ -20,26 +24,8 @@
   memoryGiB = 32;
 
   network = {
-    name = "default";
+    inherit (defaultNetwork) name;
   };
 
-  gpu = {
-    video = {
-      pci = {
-        domain = 0;
-        bus = 7;
-        slot = 0;
-        function = 0;
-      };
-    };
-
-    audio = {
-      pci = {
-        domain = 0;
-        bus = 7;
-        slot = 0;
-        function = 1;
-      };
-    };
-  };
+  inherit gpu;
 }

@@ -1,3 +1,7 @@
+let
+  gpu = import ./passthrough-gpu.nix;
+  defaultNetwork = import ./default-network.nix;
+in
 {
   name = "win11-gaming";
   uuid = "c59b4c32-6f1a-4f51-91e8-8d9d27cb4db1";
@@ -24,37 +28,8 @@
   memoryGiB = 32;
 
   network = {
-    name = "default";
-    bridge = "virbr0";
-    uuid = "f5f1c6d0-07c6-4990-b88f-d344e31f979b";
-    subnet = {
-      address = "192.168.122.1";
-      netmask = "255.255.255.0";
-      dhcpStart = "192.168.122.2";
-      dhcpEnd = "192.168.122.254";
-    };
+    inherit (defaultNetwork) name;
   };
 
-  # RTX 4060 and its HDMI/DP audio function.
-  gpu = {
-    video = {
-      nodeDevice = "pci_0000_07_00_0";
-      pci = {
-        domain = 0;
-        bus = 7;
-        slot = 0;
-        function = 0;
-      };
-    };
-
-    audio = {
-      nodeDevice = "pci_0000_07_00_1";
-      pci = {
-        domain = 0;
-        bus = 7;
-        slot = 0;
-        function = 1;
-      };
-    };
-  };
+  inherit gpu;
 }

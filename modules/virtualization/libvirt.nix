@@ -30,4 +30,8 @@
     virt-manager
     virtio-win
   ];
+
+  # Do not fail the entire NixOS switch if BIOS virtualization/SVM is disabled.
+  # NixVirt will define the VMs once /dev/kvm exists.
+  systemd.services.nixvirt.unitConfig.ConditionPathExists = "/dev/kvm";
 }
