@@ -1,6 +1,6 @@
 # nix-compute01
 
-Bare-bones flake-driven NixOS configuration for `compute01`.
+Flake-driven NixOS configuration for `compute01`.
 
 `hardware-configuration.nix` is intentionally ignored because it is machine-specific.
 The flake imports it from `/etc/nixos/hardware-configuration.nix`, so rebuild with `--impure`.
@@ -11,56 +11,73 @@ The flake imports it from `/etc/nixos/hardware-configuration.nix`, so rebuild wi
 sudo nixos-rebuild switch --flake /etc/nixos#compute01 --impure
 ```
 
-There is also a temporary `#nixos` alias for the first rebuild while the current hostname is still `nixos`.
+## GPU passthrough VMs
 
-## Windows gaming VM
+The RTX 4060 is dedicated to VFIO/libvirt VMs. The host does not use the GPU through NVIDIA anymore; manage the host over SSH.
 
-The repo defines a NixVirt/libvirt VM named `win11-gaming` with dynamic RTX 4060 passthrough.
+Defined VMs:
 
-- VM off: NVIDIA driver owns the GPU on the NixOS host.
-- VM starting: libvirt hook unloads NVIDIA and binds the GPU to VFIO.
-- VM stopped: libvirt hook reattaches the GPU to the host NVIDIA driver.
+- `win11-gaming`
+- `ubuntu-gaming`
 
-Readable settings live in `configs/gaming-vm.nix`.
-Virtualization modules live in `modules/virtualization/`:
+Only one VM can run at a time because both pass through the same RTX 4060 and NVIDIA audio device.
+
+Readable VM settings live in:
+
+```text
+configs/gaming-vm.nix
+configs/ubuntu-vm.nix
+```
+
+Virtualization modules live in:
 
 ```text
 modules/virtualization/
 ├── default.nix
 ├── libvirt.nix
 ├── vfio.nix
-└── windows-gaming-vm/
-    ├── default.nix
-    ├── domain.nix
-    ├── gpu-hook.nix
-    ├── network.nix
-    └── domain/
-        ├── boot.nix
-        ├── cpu.nix
-        ├── features.nix
-        ├── lifecycle.nix
-        └── devices/
+├── windows-gaming-vm/
+└── ubuntu-gaming-vm/
 ```
 
-After rebuilding and rebooting, attach your Windows ISO:
-
-```bash
-sudo virsh attach-disk win11-gaming /path/to/windows.iso sda --type cdrom --mode readonly --config
-```
-
-Then start the VM:
-
-```bash
-sudo virsh start win11-gaming
-```
-
-The host display will go headless while the VM is running. SSH should remain available.
-
-Useful checks:
+Check VMs:
 
 ```bash
 sudo virsh list --all
-sudo virsh domstate win11-gaming
-sudo systemctl status nixvirt.service
-sudo tail -f /var/log/libvirt/qemu/win11-gaming-gpu-hook.log
+```
+
+Attach installers:
+
+```bash
+sudo virsh attach-disk win11-gaming /path/to/windows.iso sda --type cdrom --mode readonly --config
+sudo virsh attach-disk ubuntu-gaming /path/to/ubuntu.iso sda --type cdrom --mode readonly --config
+```
+
+Start one VM:
+
+```bash
+sudo virsh start win11-gaming
+# or
+sudo virsh start ubuntu-gaming
+```
+
+Stop it before starting the other:
+
+```bash
+sudo virsh shutdown win11-gaming
+# if needed:
+sudo virsh destroy win11-gaming
+```
+
+Check GPU binding:
+
+```bash
+lspci -nnk -s 07:00.0
+lspci -nnk -s 07:00.1
+```
+
+Expected on the host after boot and when VMs are off:
+
+```text
+Kernel driver in use: vfio-pci
 ```
