@@ -25,7 +25,11 @@
   # Host will not load NVIDIA for this GPU; reboot returns it to this VFIO state.
   boot.extraModprobeConfig = ''
     options kvm ignore_msrs=1 report_ignored_msrs=0
-    options vfio-pci ids=10de:2882,10de:22be disable_vga=1
+
+    # Keep VGA regions available to QEMU. Some GPUs fail VM start with
+    # "device does not support requested feature x-vga"/VGA-region errors when
+    # vfio-pci is loaded with disable_vga=1.
+    options vfio-pci ids=10de:2882,10de:22be
   '';
 
   boot.blacklistedKernelModules = [
