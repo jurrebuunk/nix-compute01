@@ -22,4 +22,8 @@
     type = "sata";
     index = 0;
   }
+  {
+    type = "virtio-serial";
+    index = 0;
+  }
 ]

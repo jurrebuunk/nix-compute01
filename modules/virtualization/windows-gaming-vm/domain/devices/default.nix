@@ -17,6 +17,14 @@
     model.type = "virtio";
   };
 
+  channel = {
+    type = "spicevmc";
+    target = {
+      type = "virtio";
+      name = "com.redhat.spice.0";
+    };
+  };
+
   input = [
     {
       type = "tablet";
@@ -31,6 +39,22 @@
       bus = "ps2";
     }
   ];
+
+  graphics = {
+    type = "spice";
+    autoport = true;
+    listen = {
+      type = "address";
+      address = "127.0.0.1";
+    };
+    image.compression = false;
+  };
+
+  video.model = {
+    type = "virtio";
+    heads = 1;
+    primary = true;
+  };
 
   tpm = {
     model = "tpm-crb";

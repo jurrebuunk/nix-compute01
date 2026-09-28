@@ -1,24 +1,16 @@
 { pkgs, vm }:
 
-let
-  gpuVideo = "0000:07:00.0";
-  gpuAudio = "0000:07:00.1";
-in
 pkgs.writeShellApplication {
   name = "libvirt-qemu-hook";
   runtimeInputs = with pkgs; [
-    bash
     coreutils
     gnugrep
-    kmod
     systemd
   ];
   text = ''
     set -euo pipefail
 
     VM_NAME="${vm.name}"
-    GPU_VIDEO="${gpuVideo}"
-    GPU_AUDIO="${gpuAudio}"
     LOG_DIR="/var/log/libvirt/qemu"
     LOG_FILE="$LOG_DIR/$VM_NAME-gpu-hook.log"
 
@@ -42,52 +34,22 @@ pkgs.writeShellApplication {
         fi
       done
 
-      for driver in efi-framebuffer simple-framebuffer vesa-framebuffer; do
-        driver_dir="/sys/bus/platform/drivers/$driver"
-        if [ -d "$driver_dir" ]; then
-          for dev in "$driver_dir"/*; do
-            [ -e "$dev" ] || continue
-            dev_name="$(basename "$dev")"
-            case "$dev_name" in
-              bind|unbind|module|uevent) continue ;;
-            esac
-            printf '%s\n' "$dev_name" > "$driver_dir/unbind" || true
-          done
-        fi
-      done
-    }
-
-    unload_nvidia() {
-      # Prevent nvidia-modeset from holding the boot VGA GPU while QEMU takes it.
-      timeout 10s modprobe -r nvidia_drm nvidia_modeset nvidia_uvm nvidia || true
-    }
-
-    bind_to_vfio() {
-      dev="$1"
-      vendor="$(cat "/sys/bus/pci/devices/$dev/vendor")"
-      device="$(cat "/sys/bus/pci/devices/$dev/device")"
-
-      modprobe vfio-pci
-      echo vfio-pci > "/sys/bus/pci/devices/$dev/driver_override" || true
-
-      if [ -e "/sys/bus/pci/devices/$dev/driver/unbind" ]; then
-        timeout 5s bash -c "printf '%s\\n' '$dev' > '/sys/bus/pci/devices/$dev/driver/unbind'" || true
+      if [ -e /sys/bus/platform/drivers/efi-framebuffer/efi-framebuffer.0 ]; then
+        echo efi-framebuffer.0 > /sys/bus/platform/drivers/efi-framebuffer/unbind || true
       fi
-
-      echo "$vendor $device" > /sys/bus/pci/drivers/vfio-pci/new_id || true
-      timeout 5s bash -c "printf '%s\\n' '$dev' > /sys/bus/pci/drivers/vfio-pci/bind" || true
     }
 
     case "$operation/$suboperation" in
       prepare/begin)
+        # Let libvirt's managed='yes' hostdev handling do the actual PCI detach
+        # and vfio-pci bind. The hook only gets the host framebuffer out of the way.
         systemctl stop display-manager.service || true
         unbind_framebuffer
-        unload_nvidia
-        bind_to_vfio "$GPU_AUDIO"
-        bind_to_vfio "$GPU_VIDEO"
         ;;
       stopped/end|release/end)
-        echo "Leaving GPU bound to vfio-pci; reboot to return it to host NVIDIA."
+        # Do not dynamically reattach the GPU to NVIDIA on this machine; that was
+        # the path that wedged nvidia-modeset. Reboot to return GPU to host NVIDIA.
+        echo "Leaving GPU handoff cleanup to libvirt; reboot to return GPU to host NVIDIA."
         ;;
     esac
   '';
