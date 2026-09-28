@@ -3,6 +3,7 @@
 let
   vm = import ../../../configs/ubuntu-compute-vm.nix;
   domainXml = import ./domain.nix { inherit inputs pkgs vm; };
+  gpuHandoffHook = import ../gpu-handoff-hook.nix { inherit pkgs vm; };
 in
 {
   virtualisation.libvirt.connections."qemu:///system".domains = [
@@ -12,6 +13,9 @@ in
       restart = null;
     }
   ];
+
+  virtualisation.libvirtd.hooks.qemu."${vm.name}-gpu-handoff" =
+    "${gpuHandoffHook}/bin/libvirt-qemu-gpu-handoff-hook";
 
   systemd.services."libvirt-create-${vm.name}-disk" = {
     description = "Create sparse qcow2 disk for ${vm.name}";
