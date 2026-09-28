@@ -33,6 +33,7 @@
           )
           ./configuration.nix
           ./modules/hardware-sensors.nix
+          ./modules/nvidia.nix
           ./modules/virtualization
         ];
       };
