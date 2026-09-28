@@ -19,6 +19,21 @@ let
   // import ./domain/lifecycle.nix { }
   // {
     devices = import ./domain/devices { inherit inputs pkgs vm; };
+
+    # Make the passed-through boot VGA GPU behave as the VM VGA device.
+    # Without this, OVMF/Windows can initialize but never light up the physical output.
+    qemu-override.device = [
+      {
+        alias = "hostdev0";
+        frontend.property = [
+          {
+            name = "x-vga";
+            type = "bool";
+            value = "true";
+          }
+        ];
+      }
+    ];
   };
 in
 inputs.NixVirt.lib.domain.writeXML domain
