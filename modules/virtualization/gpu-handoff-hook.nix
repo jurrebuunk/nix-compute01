@@ -42,13 +42,15 @@ pkgs.writeShellApplication {
       done
 
       for driver in efi-framebuffer simple-framebuffer vesa-framebuffer; do
-        if [ -d "/sys/bus/platform/drivers/$driver" ]; then
-          for dev in /sys/bus/platform/drivers/$driver/*; do
+        driver_dir="/sys/bus/platform/drivers/$driver"
+        if [ -d "$driver_dir" ]; then
+          for dev in "$driver_dir"/*; do
             [ -e "$dev" ] || continue
-            case "$(basename "$dev")" in
+            dev_name="$(basename "$dev")"
+            case "$dev_name" in
               bind|unbind|module|uevent) continue ;;
             esac
-            echo "$(basename "$dev")" > "/sys/bus/platform/drivers/$driver/unbind" || true
+            printf '%s\n' "$dev_name" > "$driver_dir/unbind" || true
           done
         fi
       done
