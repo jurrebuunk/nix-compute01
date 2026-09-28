@@ -56,6 +56,12 @@ pkgs.writeShellApplication {
       done
     }
 
+    unload_nvidia() {
+      # nvidia_drm/nvidia_modeset can keep the boot VGA device busy even without
+      # a display manager. Unload them before binding the card to VFIO.
+      timeout 10s modprobe -r nvidia_drm nvidia_modeset nvidia_uvm nvidia || true
+    }
+
     bind_to_vfio() {
       dev="$1"
 
@@ -68,14 +74,14 @@ pkgs.writeShellApplication {
       device="$(cat "/sys/bus/pci/devices/$dev/device")"
 
       modprobe vfio-pci
+      echo vfio-pci > "/sys/bus/pci/devices/$dev/driver_override" || true
 
       if [ -e "/sys/bus/pci/devices/$dev/driver/unbind" ]; then
-        echo "$dev" > "/sys/bus/pci/devices/$dev/driver/unbind" || true
+        timeout 5s sh -c "printf '%s\\n' '$dev' > '/sys/bus/pci/devices/$dev/driver/unbind'" || true
       fi
 
       echo "$vendor $device" > /sys/bus/pci/drivers/vfio-pci/new_id || true
-      echo vfio-pci > "/sys/bus/pci/devices/$dev/driver_override" || true
-      echo "$dev" > /sys/bus/pci/drivers/vfio-pci/bind || true
+      timeout 5s sh -c "printf '%s\\n' '$dev' > /sys/bus/pci/drivers/vfio-pci/bind" || true
     }
 
     case "$operation/$suboperation" in
@@ -85,6 +91,7 @@ pkgs.writeShellApplication {
         # live NVIDIA reattach.
         systemctl stop display-manager.service || true
         unbind_framebuffer
+        unload_nvidia
         bind_to_vfio "$GPU_AUDIO"
         bind_to_vfio "$GPU_VIDEO"
         ;;
