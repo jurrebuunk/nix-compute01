@@ -3,7 +3,7 @@
 let
   vm = import ../../../configs/windows-gaming-vm.nix;
   domainXml = import ./domain.nix { inherit inputs pkgs vm; };
-  gpuHandoffHook = import ../gpu-handoff-hook.nix { inherit pkgs vm; };
+  qemuHook = import ./gpu-hook.nix { inherit pkgs vm; };
 in
 {
   virtualisation.libvirt.connections."qemu:///system".domains = [
@@ -14,8 +14,7 @@ in
     }
   ];
 
-  virtualisation.libvirtd.hooks.qemu."${vm.name}-gpu-handoff" =
-    "${gpuHandoffHook}/bin/libvirt-qemu-gpu-handoff-hook";
+  virtualisation.libvirtd.hooks.qemu."${vm.name}-gpu" = "${qemuHook}/bin/libvirt-qemu-hook";
 
   systemd.services."libvirt-create-${vm.name}-disk" = {
     description = "Create sparse qcow2 disk for ${vm.name}";
