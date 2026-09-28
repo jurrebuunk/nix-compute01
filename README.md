@@ -80,8 +80,4 @@ lspci -nnk -s 07:00.0
 lspci -nnk -s 07:00.1
 ```
 
-Expected on the host after boot and when VMs are off:
-
-```text
-Kernel driver in use: vfio-pci
-```
+Expected on the host after boot and when VMs are off: no NVIDIA/nouveau driver should be bound to the GPU. Libvirt binds it to `vfio-pci` when a VM starts.
