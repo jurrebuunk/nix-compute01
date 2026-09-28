@@ -7,6 +7,7 @@ in
 pkgs.writeShellApplication {
   name = "libvirt-qemu-gpu-handoff-hook";
   runtimeInputs = with pkgs; [
+    bash
     coreutils
     gnugrep
     kmod
@@ -77,11 +78,11 @@ pkgs.writeShellApplication {
       echo vfio-pci > "/sys/bus/pci/devices/$dev/driver_override" || true
 
       if [ -e "/sys/bus/pci/devices/$dev/driver/unbind" ]; then
-        timeout 5s sh -c "printf '%s\\n' '$dev' > '/sys/bus/pci/devices/$dev/driver/unbind'" || true
+        timeout 5s bash -c "printf '%s\\n' '$dev' > '/sys/bus/pci/devices/$dev/driver/unbind'" || true
       fi
 
       echo "$vendor $device" > /sys/bus/pci/drivers/vfio-pci/new_id || true
-      timeout 5s sh -c "printf '%s\\n' '$dev' > /sys/bus/pci/drivers/vfio-pci/bind" || true
+      timeout 5s bash -c "printf '%s\\n' '$dev' > /sys/bus/pci/drivers/vfio-pci/bind" || true
     }
 
     case "$operation/$suboperation" in
