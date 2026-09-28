@@ -1,5 +1,11 @@
-{ ... }:
+{ pkgs, ... }:
 
+let
+  gpuDevices = [
+    "0000:07:00.0"
+    "0000:07:00.1"
+  ];
+in
 {
   boot.kernelParams = [
     # IOMMU passthrough mode: devices stay fast until assigned to VFIO.
@@ -8,28 +14,14 @@
     "kvm.report_ignored_msrs=0"
   ];
 
-  boot.initrd.kernelModules = [
-    "vfio"
-    "vfio_iommu_type1"
-    "vfio_pci"
-  ];
+  # Do not bind the single NVIDIA GPU to vfio-pci in the initrd/early udev path.
+  # On this machine that can make host boot appear to hang around systemd-udevd.
+  # Instead, keep host NVIDIA drivers blacklisted and bind the GPU to VFIO from a
+  # normal systemd service once userspace is up.
+  boot.kernelModules = [ "kvm-amd" ];
 
-  boot.kernelModules = [
-    "kvm-amd"
-    "vfio"
-    "vfio_iommu_type1"
-    "vfio_pci"
-  ];
-
-  # RTX 4060 + NVIDIA HDMI/DP audio are dedicated to VMs.
-  # Host will not load NVIDIA for this GPU; reboot returns it to this VFIO state.
   boot.extraModprobeConfig = ''
     options kvm ignore_msrs=1 report_ignored_msrs=0
-
-    # Keep VGA regions available to QEMU. Some GPUs fail VM start with
-    # "device does not support requested feature x-vga"/VGA-region errors when
-    # vfio-pci is loaded with disable_vga=1.
-    options vfio-pci ids=10de:2882,10de:22be
   '';
 
   boot.blacklistedKernelModules = [
@@ -39,4 +31,53 @@
     "nvidia_modeset"
     "nvidia_uvm"
   ];
+
+  systemd.services.bind-passthrough-gpu-to-vfio = {
+    description = "Bind dedicated passthrough GPU to vfio-pci after host userspace is up";
+    wantedBy = [ "multi-user.target" ];
+    after = [
+      "systemd-udev-settle.service"
+      "network-online.target"
+    ];
+    wants = [ "network-online.target" ];
+    before = [ "libvirtd.service" ];
+    path = [ pkgs.kmod ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      TimeoutStartSec = 20;
+    };
+    script = ''
+      set -u
+
+      modprobe vfio-pci
+
+      for dev in ${builtins.concatStringsSep " " gpuDevices}; do
+        if [ ! -e "/sys/bus/pci/devices/$dev" ]; then
+          echo "PCI device $dev not found; skipping"
+          continue
+        fi
+
+        echo vfio-pci > "/sys/bus/pci/devices/$dev/driver_override"
+
+        if [ -e "/sys/bus/pci/devices/$dev/driver/unbind" ]; then
+          echo "$dev" > "/sys/bus/pci/devices/$dev/driver/unbind" || true
+        fi
+      done
+
+      for dev in ${builtins.concatStringsSep " " gpuDevices}; do
+        if [ -e "/sys/bus/pci/devices/$dev" ]; then
+          echo "$dev" > /sys/bus/pci/drivers_probe || true
+        fi
+      done
+
+      for dev in ${builtins.concatStringsSep " " gpuDevices}; do
+        if [ -L "/sys/bus/pci/devices/$dev/driver" ]; then
+          echo "$dev bound to $(basename "$(readlink -f "/sys/bus/pci/devices/$dev/driver")")"
+        else
+          echo "$dev is not bound to a driver yet"
+        fi
+      done
+    '';
+  };
 }
