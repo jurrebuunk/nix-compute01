@@ -3,10 +3,16 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
+    NixVirt = {
+      # Pinned because NixVirt's GitHub master can break; update deliberately.
+      url = "github:AshleyYakeley/NixVirt/6d213ab42f72ba41c2eb4e6bdb97581c0642d942";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
-    { self, nixpkgs, ... }:
+    { self, nixpkgs, ... }@inputs:
     let
       system = "x86_64-linux";
       lib = nixpkgs.lib;
@@ -14,7 +20,10 @@
 
       mkHost = lib.nixosSystem {
         inherit system;
+        specialArgs = { inherit inputs; };
         modules = [
+          inputs.NixVirt.nixosModules.default
+
           # Machine-specific and intentionally gitignored.
           # Use `--impure` when rebuilding so flakes can read it from /etc/nixos.
           (
@@ -25,7 +34,7 @@
           )
           ./configuration.nix
           ./modules/hardware-sensors.nix
-          ./modules/nvidia.nix
+          ./modules/virtualization
         ];
       };
     in
