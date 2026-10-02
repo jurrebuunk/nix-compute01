@@ -13,6 +13,11 @@
       slot = 0;
       function = 0;
     };
+
+    # Required for this card because it is also the firmware boot GPU.
+    # The sysfs dump from /sys/bus/pci/devices/0000:07:00.0/rom only contains
+    # the legacy shadow ROM, so OVMF cannot use it for display output.
+    romFile = "/var/lib/libvirt/vbios/rtx4060-uefi.rom";
   };
 
   audio = {
