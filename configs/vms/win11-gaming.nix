@@ -11,6 +11,8 @@ in
     diskPath = "/var/lib/libvirt/images/win11-gaming.qcow2";
     diskSize = "500G";
     nvramPath = "/var/lib/libvirt/qemu/nvram/win11-gaming_VARS.fd";
+
+    installIso = "/home/jurre/ISO/microwin11.iso";
   };
 
   cpu = {

@@ -18,7 +18,7 @@ let
         bus = "virtio";
       };
     }
-    {
+    ({
       type = "file";
       device = "cdrom";
       driver = {
@@ -30,7 +30,11 @@ let
         bus = "sata";
       };
       readonly = true;
-    }
+    } // (
+      if vm.storage ? installIso && vm.storage.installIso != null then {
+        source.file = vm.storage.installIso;
+      } else { }
+    ))
   ];
 
   windowsDisks = [
