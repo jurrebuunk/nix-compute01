@@ -55,3 +55,5 @@ lspci -nnk -s 07:00.1
 
 Both functions should be using `vfio-pci`. The local monitor may go black once Linux binds the only GPU to VFIO; that is expected.
 
+For this single/boot-GPU setup, VFIO is intentionally loaded after the initrd and the EFI/simple framebuffers are disabled with kernel parameters. This avoids the common `vfio-pci ... vgaarb` / black-screen boot hang when the passthrough GPU is also the firmware boot display.
+

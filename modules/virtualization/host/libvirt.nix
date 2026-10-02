@@ -48,6 +48,11 @@
     virtio-win
   ];
 
-  # Do not fail the entire NixOS switch if BIOS virtualization/SVM is disabled.
-  systemd.services.nixvirt.unitConfig.ConditionPathExists = "/dev/kvm";
+  systemd.services.nixvirt = {
+    # Do not fail the entire NixOS switch if BIOS virtualization/SVM is disabled.
+    unitConfig.ConditionPathExists = "/dev/kvm";
+
+    # NixVirt/libvirt calls should never leave boot or nixos-rebuild stuck forever.
+    serviceConfig.TimeoutStartSec = "45s";
+  };
 }
