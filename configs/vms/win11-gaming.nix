@@ -28,6 +28,8 @@ in
 
   network = {
     inherit (lan) bridge;
+    # Windows has an inbox Intel e1000e driver, so networking works during install/OOBE.
+    model = "e1000e";
   };
 
   passthrough = {

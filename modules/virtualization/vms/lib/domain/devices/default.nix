@@ -1,14 +1,16 @@
 { inputs, pkgs, vm }:
 
 let
+  networkModel = vm.network.model or "virtio";
+
   networkInterface = if vm.network ? bridge then {
     type = "bridge";
     source.bridge = vm.network.bridge;
-    model.type = "virtio";
+    model.type = networkModel;
   } else {
     type = "network";
     source.network = vm.network.network;
-    model.type = "virtio";
+    model.type = networkModel;
   };
 in
 {
