@@ -30,6 +30,7 @@ in
 
   passthrough = {
     inherit gpu;
-    managed = false;
+    # Let libvirt bind/unbind the PCI devices to vfio-pci when the VM starts.
+    managed = true;
   };
 }

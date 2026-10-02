@@ -1,5 +1,8 @@
 { inputs, pkgs, ... }:
 
+let
+  singleGpuHook = import ./single-gpu-hook.nix { inherit pkgs; };
+in
 {
   virtualisation.libvirtd = {
     enable = true;
@@ -32,6 +35,9 @@
 
   programs.virt-manager.enable = true;
   virtualisation.spiceUSBRedirection.enable = true;
+  virtualisation.libvirtd.hooks.qemu."single-gpu-prepare" =
+    "${singleGpuHook}/bin/libvirt-qemu-single-gpu-prepare";
+
   networking.firewall.trustedInterfaces = [ "virbr0" ];
 
   users.users.jurre.extraGroups = [

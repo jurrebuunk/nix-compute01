@@ -13,8 +13,8 @@ sudo nixos-rebuild switch --flake /etc/nixos#compute01 --impure
 
 ## Virtualization
 
-The RTX 4060 is reserved for VFIO at boot and passed directly to libvirt guests.
-The host does not load NVIDIA drivers and is expected to be managed over SSH.
+The RTX 4060 is passed directly to libvirt guests.
+The host does not load NVIDIA drivers, but it also does not bind the boot GPU to VFIO during early boot; libvirt performs managed VFIO attach when a VM starts.
 
 Current VM list:
 
@@ -53,7 +53,5 @@ lspci -nnk -s 07:00.0
 lspci -nnk -s 07:00.1
 ```
 
-Both functions should be using `vfio-pci`. The local monitor may go black once Linux binds the only GPU to VFIO; that is expected.
-
-For this single/boot-GPU setup, VFIO is intentionally loaded after the initrd and the EFI/simple framebuffers are disabled with kernel parameters. This avoids the common `vfio-pci ... vgaarb` / black-screen boot hang when the passthrough GPU is also the firmware boot display.
+Before a VM starts, the GPU may show no NVIDIA/nouveau kernel driver, but it may still be used by the Linux firmware/simple framebuffer console. When a VM starts, a libvirt qemu hook unbinds the framebuffer console and libvirt attaches the GPU/audio functions to `vfio-pci` with managed PCI passthrough.
 
