@@ -28,10 +28,16 @@ Per-VM settings live in:
 configs/vms/
 ```
 
-Shared host/libvirt/VFIO modules live in:
+Shared host/libvirt/VFIO/network modules live in:
 
 ```text
 modules/virtualization/host/
+```
+
+VMs attach to the LAN bridge `br0`, backed by `enp6s0`, so guests receive normal LAN DHCP leases from the router. Bridge settings live in:
+
+```text
+configs/hardware/network.nix
 ```
 
 Shared NixVirt domain builders live in:

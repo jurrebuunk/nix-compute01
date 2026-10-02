@@ -1,5 +1,6 @@
 let
   gpu = import ../hardware/passthrough-gpu.nix;
+  lan = import ../hardware/network.nix;
 in
 {
   name = "win11-gaming";
@@ -24,8 +25,7 @@ in
   memoryGiB = 32;
 
   network = {
-    # Use libvirt's default NAT network first. This avoids host bridge complexity.
-    network = "default";
+    inherit (lan) bridge;
   };
 
   passthrough = {
