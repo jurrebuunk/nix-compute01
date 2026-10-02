@@ -9,6 +9,17 @@ let
       file = gpu.video.romFile;
     } else { }
   );
+
+  mkUsbHostdev = device: {
+    mode = "subsystem";
+    type = "usb";
+    managed = true;
+    source = {
+      startupPolicy = "optional";
+      vendor.id = device.vendor;
+      product.id = device.product;
+    };
+  };
 in
 [
   {
@@ -29,4 +40,4 @@ in
     driver.name = "vfio";
     source.address = gpu.audio.pci;
   }
-]
+] ++ map mkUsbHostdev (vm.passthrough.usbDevices or [ ])

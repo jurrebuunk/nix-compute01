@@ -32,5 +32,13 @@ in
     inherit gpu;
     # Let libvirt bind/unbind the PCI devices to vfio-pci when the VM starts.
     managed = true;
+
+    usbDevices = [
+      {
+        name = "rk-keyboard-wired";
+        vendor = 9610; # 0x258a
+        product = 73; # 0x0049
+      }
+    ];
   };
 }
