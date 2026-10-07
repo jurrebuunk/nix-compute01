@@ -22,6 +22,23 @@ in
 
   interface = networkInterface;
 
+  # Fallback console for recovery/debugging when the passed-through GPU output
+  # switches to an unsupported mode in the guest.
+  graphics = {
+    type = "vnc";
+    autoport = true;
+    listen = {
+      type = "address";
+      address = "127.0.0.1";
+    };
+  };
+
+  video.model = {
+    type = "vga";
+    heads = 1;
+    primary = true;
+  };
+
   input = [
     {
       type = "tablet";
