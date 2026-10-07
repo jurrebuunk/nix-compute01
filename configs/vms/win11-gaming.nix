@@ -43,6 +43,11 @@ in
         vendor = 9610; # 0x258a
         product = 73; # 0x0049
       }
+      {
+        name = "logitech-unifying-receiver";
+        vendor = 1133; # 0x046d
+        product = 50475; # 0xc52b
+      }
     ];
   };
 }
