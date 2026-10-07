@@ -36,7 +36,6 @@ in
   video.model = {
     type = "vga";
     heads = 1;
-    primary = true;
   };
 
   input = [
