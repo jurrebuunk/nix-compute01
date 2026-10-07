@@ -45,5 +45,13 @@ in
     };
   };
 
+  # Do not automatically reset the guest when the passed-through GPU driver
+  # hangs. Keeping the VM paused/hung makes the failure diagnosable instead of
+  # looking like a spontaneous Windows reboot.
+  watchdog = {
+    model = "itco";
+    action = "none";
+  };
+
   memballoon.model = "none";
 }

@@ -44,9 +44,9 @@ in
         product = 73; # 0x0049
       }
       {
-        name = "logitech-unifying-receiver";
-        vendor = 1133; # 0x046d
-        product = 50475; # 0xc52b
+        name = "dell-ms116-wired-mouse";
+        vendor = 16700; # 0x413c
+        product = 12314; # 0x301a
       }
     ];
   };

@@ -11,6 +11,8 @@
     "iommu=pt"
     "kvm.ignore_msrs=1"
     "kvm.report_ignored_msrs=0"
+    # Avoid PCIe link power-state transitions during GPU passthrough load.
+    "pcie_aspm=off"
   ];
 
   boot.blacklistedKernelModules = [
@@ -24,5 +26,7 @@
 
   boot.extraModprobeConfig = ''
     options kvm ignore_msrs=1 report_ignored_msrs=0
+    # Do not put passthrough devices into D3 while vfio-pci owns them.
+    options vfio-pci disable_idle_d3=1
   '';
 }

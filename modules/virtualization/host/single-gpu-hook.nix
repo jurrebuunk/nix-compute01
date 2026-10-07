@@ -47,5 +47,36 @@ pkgs.writeShellApplication {
     modprobe vfio || true
     modprobe vfio_iommu_type1 || true
     modprobe vfio_pci || true
+
+    # The RTX is the firmware boot GPU, and the host can still bind ancillary
+    # functions (notably NVIDIA HDA audio) before a VM starts. Make the handoff
+    # deterministic without binding the boot GPU in initrd (which can make this
+    # single-GPU server unbootable/headless before networking).
+    for dev in 0000:07:00.0 0000:07:00.1; do
+      dev_path="/sys/bus/pci/devices/$dev"
+      [ -e "$dev_path" ] || continue
+
+      # Keep the device out of runtime power-save while it is handed to vfio.
+      if [ -w "$dev_path/power/control" ]; then
+        echo on > "$dev_path/power/control" || true
+      fi
+
+      # Force vfio-pci as the next driver, then unbind any current host driver
+      # such as snd_hda_intel on the GPU audio function.
+      if [ -w "$dev_path/driver_override" ]; then
+        echo vfio-pci > "$dev_path/driver_override" || true
+      fi
+
+      if [ -L "$dev_path/driver" ]; then
+        current_driver="$(basename "$(readlink -f "$dev_path/driver")")"
+        if [ "$current_driver" != "vfio-pci" ]; then
+          echo "$dev" > "$dev_path/driver/unbind" || true
+        fi
+      fi
+
+      if [ -w /sys/bus/pci/drivers/vfio-pci/bind ]; then
+        echo "$dev" > /sys/bus/pci/drivers/vfio-pci/bind || true
+      fi
+    done
   '';
 }
